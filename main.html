@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>树状结构交互网页</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .button {
+
+            position: absolute;
+            padding: 10px 40px;
+            background-color: rgba(213, 167, 30, 0);
+            color: rgba(213, 167, 30, 0);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .videoElement {
+            width: 100%;
+            height: 28%;
+            display: none;
+            /* 初始隐藏视频元素 */
+            position: absolute;
+            top: 19%;
+            left: 0;
+        }
+
+        .infoBox {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            padding: 10px;
+            color: rgb(255, 255, 255);
+            background-color: rgba(36, 30, 30, 0.7);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            /* 初始隐藏 */
+        }
+        @media (max-width: 600px) {
+            .button {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+            .infoBox {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="backgroundContainer">
+        <!-- Buttons will be dynamically added here -->
+
+    </div>
+
+    <script>
+
+let infoBoxContent = '';
+
+        const states = [
+            {//0
+                background: 'https://p.ipic.vip/vci3cq.png',
+                buttons: [
+                    { text: 'join', style: { bottom: '11%', left: '37%' }, nextState: 1 }
+                ]
+            },
+            {//1
+                background: 'https://p.ipic.vip/pqew2a.png',
+                buttons: [
+                    { text: 'clue1clue1clue1clue1\nclue1\nclue1\nclue1\nclue1\nclue1\nclue1', style: { top: '12%', left: '35%' }, nextState: 2 },
+                    { text: 'clue1clue1clue1clue1clue1clue1clue1clue1\nclue1\nclue1\nclue1\nclue1\nclue1\nclue1\nclue1\nclue1', style: { top: '40%', left: '15%' }, nextState: 1 },
+                    { text: 'clue1clue1clue1clue1clue1\nclue1\nclue1\nclue1\nclue1\nclue1\nclue1', style: { top: '68%', left: '40%' }, nextState: 1 }
+                ]
+            },
+            {//2
+                background: 'https://p.ipic.vip/bc5d8d.png',
+                buttons: [
+                    { text: 'trust', style: { top: '82%', left: '16%' }, nextState: 3 },
+                    { text: 'doubt', style: { top: '82%', left: '55%' }, nextState: 2 }
+                ]
+            },
+            {//3
+                background: 'https://p.ipic.vip/ljho54.png',
+                buttons: [
+                    { text: '开启摄像头', style: { top: '32%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black', backgroundColor: 'white' }, action: startCamera },
+                    { text: 'Capture', style: { top: '82.5%', left: '14%', color: 'black' }, action: uploadImg },
+                    { text: 'Back', style: { top: '82.5%', left: '57%', color: 'black' }, nextState: 0 }
+                ]
+            }
+        ];
+
+        function renderState(stateIndex) {
+            const container = document.getElementById('backgroundContainer');
+            const state = states[stateIndex];
+
+            // Update background image
+            container.style.backgroundImage = `url(${state.background})`;
+
+            // Remove existing buttons and video element
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            // Add new buttons
+            state.buttons.forEach((buttonConfig, index) => {
+    const button = document.createElement('button');
+    button.type="button";
+    button.innerText = buttonConfig.text;
+    button.className = 'button';
+    for (const [key, value] of Object.entries(buttonConfig.style)) {
+        button.style[key] = value;
+    }
+    if (buttonConfig.action) {
+        button.onclick = (event) => 
+        buttonConfig.action(event);
+        
+    } else {
+        button.onclick = () => renderState(buttonConfig.nextState);
+    }
+    container.appendChild(button);
+});
+
+            // If the state includes starting the camera, add the video element
+            if (stateIndex === 3) {
+                const video = document.createElement('video');
+                video.className = 'videoElement';
+                video.id = 'videoElement';
+                video.autoplay = true;
+                video.playsInline=true;
+                container.appendChild(video);
+
+                // Create info box
+                    const infoBox = document.createElement('div');
+                    infoBox.className = 'infoBox';
+                    infoBox.id = 'infoBox';
+                    infoBox.innerText=infoBoxContent;
+                    container.appendChild(infoBox);
+            infoBox.style.display = 'block'; // 显示信息框
+
+            }
+
+        }
+
+        function startCamera() {
+            console.log(infoBoxContent);
+            const video = document.getElementById('videoElement');
+
+            if (video) {
+
+                video.style.display = 'block'; // 显示视频元素
+            }
+
+            // Start camera
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function (err0r) {
+                        console.log("Something went wrong!");
+                    });
+            }
+
+        }
+
+
+        function uploadImg() {
+            const video = document.getElementById('videoElement');
+
+            if (video) {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function (blob) {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'snapshot.png');
+
+                    fetch('http://localhost:3000/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Success:', data);
+                            // 获取txt文件内容并显示在infoBox中
+                            fetch('http://localhost:3000/read-txt')
+                                .then(response => response.json())
+                                .then(fileData => {
+                                    infoBoxContent = `File Content: ${fileData.content}`;
+                                    infoBox.innerText=infoBoxContent;
+                                        console.log(infoBoxContent);
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching file content:', error);
+                                    infoBoxContent = `Error fetching file content: ${error}`;
+                                    infoBox.innerText=infoBoxContent;
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                            infoBoxContent = `Error: ${error}`;
+                            infoBox.innerText=infoBoxContent;
+                        });
+                }, 'image/png');
+            } else {
+                console.log("Video element not found.");
+            }
+        }
+
+        // Initialize with the first state
+        document.addEventListener('DOMContentLoaded', () => {
+            renderState(3);
+        });
+    </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const infoBox = document.getElementById('infoBox');
+
+        if (infoBox) {
+            // 创建WebSocket连接
+            const socket = new WebSocket('ws://localhost:3000');
+
+            // 连接打开时执行
+            socket.onopen = () => {
+                console.log('WebSocket connection established');
+            };
+
+            // 接收到消息时执行
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                infoBox.innerText = data.message;
+                infoBox.style.display = 'block';
+            };
+
+            // 连接关闭时执行
+            socket.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+
+            // 连接出错时执行
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        } else {
+            console.error('infoBox element not found');
+        }
+    });
+</script>
+
+</body>
+
+</html>
